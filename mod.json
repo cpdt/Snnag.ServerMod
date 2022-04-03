@@ -1,0 +1,17 @@
+{
+    "Name": "Snnag.ServerMod",
+    "Description": "Server tools",
+    "LoadPriority": 2,
+    "RequiredOnClient": false,
+    "Version": "1.0.0",
+
+    "Scripts": [
+        {
+            "Path": "chat.nut",
+            "RunOn": "SERVER",
+            "ServerCallback": {
+                "Before": "InitChat"
+            }
+        }
+    ]
+}
