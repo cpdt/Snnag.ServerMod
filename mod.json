@@ -7,6 +7,10 @@
 
     "Scripts": [
         {
+            "Path": "banlist.nut",
+            "RunOn": "SERVER"
+        },
+        {
             "Path": "chat.nut",
             "RunOn": "SERVER",
             "ServerCallback": {

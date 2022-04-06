@@ -38,7 +38,7 @@ void function VoteToSkip(entity player) {
 
 void function SendRulesToPlayer(entity player, bool whisper) {
     Chat_ServerPrivateMessage(player, "\x1b[93mRules:", whisper)
-    Chat_ServerPrivateMessage(player, "\x1b[37m 1.\x1b[0m Keep it chill. Competitive talk is fine but aggrevation and racism will not be tolerated.", whisper)
+    Chat_ServerPrivateMessage(player, "\x1b[37m 1.\x1b[0m Keep it chill. Competitive talk is fine but aggrevation and slurs will not be tolerated.", whisper)
     Chat_ServerPrivateMessage(player, "\x1b[37m 2.\x1b[0m Do not spam the chat. This includes spam mods and macros.", whisper)
     Chat_ServerPrivateMessage(player, "\x1b[37m 3.\x1b[0m Cheating or working around the game's controls is banned, including movement macros.", whisper)
     Chat_ServerPrivateMessage(player, "Report rule breakers on the Northstar Discord - \x1b[94mdiscord.gg/northstar", whisper)
@@ -76,6 +76,25 @@ ClServer_MessageStruct function HandleReceivedChat(ClServer_MessageStruct messag
     if (message.message == "/skip") {
         VoteToSkip(message.player)
 
+        message.shouldBlock = true
+        return message
+    }
+
+    if (ChatShadowBanList.find(message.player.GetUID()) != -1) {
+        print("ShadowBanned ChatMessage: " + message.player.GetPlayerName() + "(" + message.player.GetUID() + ") " + message.message)
+        Chat_Impersonate(message.player, message.message, message.isTeam)
+
+        message.message = ""
+        message.shouldBlock = true
+        return message
+    }
+
+    if (ChatBanList.find(message.player.GetUID()) != -1) {
+        print("Banned ChatMessage: " + message.player.GetPlayerName() + "(" + message.player.GetUID() + ") " + message.message)
+
+        Chat_ServerPrivateMessage(message.player, "\x1b[91mYou have been banned from chat.", false)
+
+        message.message = ""
         message.shouldBlock = true
         return message
     }
