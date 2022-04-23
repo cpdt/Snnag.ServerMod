@@ -38,9 +38,9 @@ void function VoteToSkip(entity player) {
 
 void function SendRulesToPlayer(entity player, bool whisper) {
     Chat_ServerPrivateMessage(player, "\x1b[93mRules:", whisper)
-    Chat_ServerPrivateMessage(player, "\x1b[37m 1.\x1b[0m Keep it chill. Competitive talk is fine but aggrevation and slurs will not be tolerated.", whisper)
-    Chat_ServerPrivateMessage(player, "\x1b[37m 2.\x1b[0m Do not spam the chat. This includes spam mods and macros.", whisper)
-    Chat_ServerPrivateMessage(player, "\x1b[37m 3.\x1b[0m Cheating or working around the game's controls is banned, including movement macros.", whisper)
+    Chat_ServerPrivateMessage(player, "\x1b[33m 1. Keep it chill. Competitive talk is fine but aggrevation and slurs will not be tolerated.", whisper)
+    Chat_ServerPrivateMessage(player, "\x1b[33m 2. Do not spam the chat. This includes spam mods and macros.", whisper)
+    Chat_ServerPrivateMessage(player, "\x1b[33m 3. Cheating or working around the game's controls is banned, including movement macros.", whisper)
     Chat_ServerPrivateMessage(player, "Report rule breakers on the Northstar Discord - \x1b[94mdiscord.gg/northstar", whisper)
 }
 
@@ -49,15 +49,35 @@ void function SendHelpToPlayer(entity player, bool whisper) {
     Chat_ServerPrivateMessage(player, "\x1b[92m /rules\x1b[0m - view the rules again.", whisper)
     Chat_ServerPrivateMessage(player, "\x1b[92m /help\x1b[0m - view the chat commands again.", whisper)
     Chat_ServerPrivateMessage(player, "\x1b[92m /skip\x1b[0m - vote to skip the current map.", whisper)
+    Chat_ServerPrivateMessage(player, "\x1b[92m /strikes\x1b[0m - view any strikes you have.", whisper)
+}
+
+void function SendStrikesToPlayer(entity player, bool whisper) {
+    if (player.GetUID() in ChatWarnList) {
+        int warnCount = ChatWarnList[player.GetUID()].len()
+        string warnCountStr = ""
+        
+        if (warnCount == 1) {
+            warnCountStr = "1 strike"
+        } else {
+            warnCountStr = warnCount + " strikes"
+        }
+
+        Chat_ServerPrivateMessage(player, "\x1b[93mYou have " + warnCountStr + ". \x1b[91mYou will be banned if you reach 3 strikes. \x1b[93mPlease carefully read the rules again.", whisper)
+    } else {
+        Chat_ServerPrivateMessage(player, "You don't have any strikes. Thanks for keeping your local Bunnings a friendly place!", whisper)
+    }
 }
 
 void function HandleClientConnected(entity player) {
-    Chat_ServerPrivateMessage(player, "\x1b[97mWelcome to \x1b[91mYour Local Bunnings\x1b[97m, where lowest prices are just the beginning.", false)
-    Chat_ServerPrivateMessage(player, "", false)
+    Chat_ServerPrivateMessage(player, "\x1b[97mWelcome to \x1b[95mYour Local Bunnings\x1b[97m, where lowest prices are just the beginning.", false)
     SendRulesToPlayer(player, false)
-    SendHelpToPlayer(player, false)
-    Chat_ServerPrivateMessage(player, "", false)
-    Chat_ServerPrivateMessage(player, "Questions? Contact \x1b[94mcpdt#5830\x1b[0m on Discord.", false)
+    Chat_ServerPrivateMessage(player, "View available chat commands with \x1b[92m/help\x1b[0m. Questions? Contact \x1b[94mcpdt#5830\x1b[0m on Discord.", false)
+
+    if (player.GetUID() in ChatWarnList) {
+        Chat_ServerPrivateMessage(player, "", false)
+        SendStrikesToPlayer(player, false)
+    }
 }
 
 ClServer_MessageStruct function HandleReceivedChat(ClServer_MessageStruct message) {
@@ -75,6 +95,12 @@ ClServer_MessageStruct function HandleReceivedChat(ClServer_MessageStruct messag
     }
     if (message.message == "/skip") {
         VoteToSkip(message.player)
+
+        message.shouldBlock = true
+        return message
+    }
+    if (message.message == "/strikes") {
+        SendStrikesToPlayer(message.player, false)
 
         message.shouldBlock = true
         return message
